@@ -253,3 +253,93 @@ class modTicket:
         getResp = _requests.post(_url, data=_bodyMod, headers=_headers)
 
         return getResp
+
+
+class reassignTic:
+    _headers = {'content-type': 'text/xml;charset=UTF-8', 'SOAPAction': 'urn:CAP:HPD_IncidentInterface_EUS_Automation_1/HelpDesk_Reassignment_Service'}
+    def __init__(self, ticNum, status="Assigned", reassignTo="GSD Automation", reassignReason=""):
+        self.ticNum = ticNum
+        self.status = status
+        self.reassignTo = reassignTo
+        self.reassignReason = reassignReason
+
+    def reassign(self):
+        bg1 = """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:CAP:HPD_IncidentInterface_EUS_Automation_1">
+   <soapenv:Header>
+      <urn:AuthenticationInfo>
+         <urn:userName>"""
+        bg2 = """</urn:userName>
+         <urn:password>"""
+        bg3 = """</urn:password>
+         <!--Optional:-->
+         <urn:authentication>?</urn:authentication>
+         <!--Optional:-->
+         <urn:locale>?</urn:locale>
+         <!--Optional:-->
+         <urn:timeZone>?</urn:timeZone>
+      </urn:AuthenticationInfo>
+   </soapenv:Header>
+   <soapenv:Body>
+      <urn:HelpDesk_Reassignment_Service>
+         <!--Optional:-->
+         <urn:Status>"""
+        bg4 = """</urn:Status>
+         <urn:Incident_Number>"""
+        bg5 = """</urn:Incident_Number>
+         <!--Optional:-->
+         <urn:Assigned_Support_Group>"""
+        bg6 = """</urn:Assigned_Support_Group>
+         <!--Optional:-->
+         <urn:Reassignment_Reason>"""
+        bg7 = """</urn:Reassignment_Reason>
+         <!--Optional:-->
+         <urn:Assignee_Login_ID></urn:Assignee_Login_ID>
+         <!--Optional:-->
+         <urn:Assigned_Support_Company></urn:Assigned_Support_Company>
+         <!--Optional:-->
+         <urn:Assigned_Support_Organization></urn:Assigned_Support_Organization>
+         <!--Optional:-->
+         <urn:Assignee></urn:Assignee>
+      </urn:HelpDesk_Reassignment_Service>
+   </soapenv:Body>
+</soapenv:Envelope>"""
+
+        _bodyMod = (bg1 + _user + bg2 + _password + bg3 + self.status + bg4 + self.ticNum +
+                   bg5 + self.reassignTo + bg6 + self.reassignReason + bg7)
+        getResp = _requests.post(_url, data=_bodyMod, headers=_headers)
+        return getResp
+
+
+class getWorkNotes:
+    _headers = {'content-type': 'text/xml;charset=UTF-8', 'SOAPAction': 'urn:CAP:HPD_IncidentInterface_EUS_Automation_1/HelpDesk_GetWorkInfoList_Service'}
+    def __init__(self, ticNum):
+        self.ticNum = ticNum
+
+    def get(self):
+        bg1 = """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:CAP:HPD_IncidentInterface_EUS_Automation_1">
+   <soapenv:Header>
+      <urn:AuthenticationInfo>
+         <urn:userName>"""
+        bg2 = """</urn:userName>
+         <urn:password>"""
+        bg3 = """</urn:password>
+         <!--Optional:-->
+         <urn:authentication>?</urn:authentication>
+         <!--Optional:-->
+         <urn:locale>?</urn:locale>
+         <!--Optional:-->
+         <urn:timeZone>?</urn:timeZone>
+      </urn:AuthenticationInfo>
+   </soapenv:Header>
+   <soapenv:Body>
+      <urn:HelpDesk_GetWorkInfoList_Service>
+         <urn:Incident_Number>"""
+        bg4 = """</urn:Incident_Number>
+      </urn:HelpDesk_GetWorkInfoList_Service>
+   </soapenv:Body>
+</soapenv:Envelope>"""
+
+        _bodyMod = (bg1 + _user + bg2 + _password + bg3 + self.ticNum + bg4)
+        getResp = _requests.post(_url, data=_bodyMod, headers=_headers)
+        return getResp
+
