@@ -3,19 +3,15 @@ import re as _re
 from getpass import getpass as _gp
 import win32com.client as _win32
 import codecs
+import sys
 
 """This module would help fetch tickets using the ITSM webservices"""
 
 _outlook = _win32.Dispatch('outlook.application')
 _url = "http://gditmutwswv51p.corp.capgemini.com:8080/arsys/services/ARService?server=gditmutapwv51p&webService=CAP:HPD_IncidentInterface_EUS_Automation_1"
 
-
-#_user=str(input("Username: "))
-#_password= _gp("Password: ")
-_user="achatter"
-_password="corp@1234"
-
-
+_user=str(input("Username: "))
+_password= _gp("Password: ")
 
 
 class getList:
@@ -80,9 +76,6 @@ class getList:
 
     def __repr__(self):
         return ("<<HelpDesk_SearchList_Service>>")
-
-
-
 
 
 class getListNoCat:
