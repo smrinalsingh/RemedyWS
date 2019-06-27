@@ -210,3 +210,5 @@ class getTicket:
                 _optcat1.groups(0)[0], _optcat2.groups(0)[0], _optcat3.groups(0)[0], _assignee.groups(0)[0], _custID.groups(0)[0],
                 _statReason.groups(0)[0], _assignLoginID.groups(0)[0], _resComment.groups(0)[0]]
 
+
+
