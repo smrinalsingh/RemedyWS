@@ -12,6 +12,7 @@ _url = "http://gditmutwswv51p.corp.capgemini.com:8080/arsys/services/ARService?s
 
 _user=str(input("Username: "))
 _password= _gp("Password: ")
+_args = sys.argv
 
 
 class getList:
@@ -131,7 +132,6 @@ class getListNoCat:
 
 
 
-
 class getTicket:
     _headers = {'content-type': 'text/xml;charset=UTF-8', 'SOAPAction': 'urn:CAP:HPD_IncidentInterface_EUS_Automation_1/HelpDesk_SearchInc_Service'}
     def __init__(self, ticNum):
@@ -205,3 +205,51 @@ class getTicket:
 
 
 
+class modTicket:
+    _headers = {'content-type': 'text/xml;charset=UTF-8', 'SOAPAction': 'urn:CAP:HPD_IncidentInterface_EUS_Automation_1/HelpDesk_StatusMod_Service'}
+    def __init__(self, ticNum, status="Assigned", statReason = "", resComment = "Test"):
+        self._ticNum = ticNum
+        self._status = status
+        self._statReason = statReason
+        self._resComment = resComment
+        
+        
+    def mod(self):
+        _
+        bg1 = """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:CAP:HPD_IncidentInterface_GSD_1">
+   <soapenv:Header>
+      <urn:AuthenticationInfo>
+         <urn:userName>"""
+        bg2 = """</urn:userName>
+         <urn:password>"""
+        bg3 = """</urn:password>
+         <!--Optional:-->
+         <urn:authentication>?</urn:authentication>
+         <!--Optional:-->
+         <urn:locale>?</urn:locale>
+         <!--Optional:-->
+         <urn:timeZone>?</urn:timeZone>
+      </urn:AuthenticationInfo>
+   </soapenv:Header>
+   <soapenv:Body>
+      <urn:HelpDesk_StatusMod_Service>
+         <!--Optional:-->
+         <urn:IncidentNumber>"""
+        bg4 = """</urn:IncidentNumber>
+         <!--Optional:-->
+         <urn:Status>"""
+        bg5 = """</urn:Status>
+         <!--Optional:-->
+         <urn:StatusReason>"""
+        bg6 = """</urn:StatusReason>
+         <!--Optional:-->
+         <urn:ResComment>"""
+        bg7 = """</urn:ResComment>
+      </urn:HelpDesk_StatusMod_Service>
+   </soapenv:Body>
+</soapenv:Envelope>"""
+
+        _bodyMod = (bg1+_user+bg2+_password+bg3+self._ticNum+bg4+self._status+bg5+self._statReason+bg6+self._resComment+bg7)
+        getResp = _requests.post(_url, data=_bodyMod, headers=_headers)
+
+        return getResp
