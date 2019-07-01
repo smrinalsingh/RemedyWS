@@ -5,6 +5,7 @@ import win32com.client as _win32
 import codecs
 import sys
 
+
 """This module would help fetch tickets using the ITSM webservices"""
 
 _outlook = _win32.Dispatch('outlook.application')
@@ -12,7 +13,7 @@ _url = "http://gditmutwswv51p.corp.capgemini.com:8080/arsys/services/ARService?s
 
 _user=str(input("Username: "))
 _password= _gp("Password: ")
-_args = sys.argv
+
 
 
 class getList:
@@ -343,3 +344,25 @@ class getWorkNotes:
         getResp = _requests.post(_url, data=_bodyMod, headers=_headers)
         return getResp
 
+
+class mail:
+    def __init__(self, to="noexistant.domain", cc="",  subject="", body="", attachment=False, html=None):
+        self.To = to
+        self.Subject = subject
+        self.body = body
+        self.cc =  cc
+        self.attach = attachment
+        self.html = html
+
+    def send(self):
+        mail = _outlook.CreateItem(0)
+        mail.To = self.To
+        mail.Subject = self.Subject
+        mail.Body = self.body
+        mail.cc = self.cc
+        if self.attach == True:
+            mail.Attachments.Add(self.attach)
+        else:
+            pass
+        
+        mail.Send()
