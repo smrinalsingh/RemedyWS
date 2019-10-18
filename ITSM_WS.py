@@ -1,23 +1,35 @@
 import requests as _requests
 import re as _re
 from getpass import getpass as _gp
-import win32com.client as _win32
+#import win32com.client as _win32
 import codecs
-import sys
+import configparser
 
 
 """This module would help fetch tickets using the ITSM webservices"""
 
-_outlook = _win32.Dispatch('outlook.application')
-_url = "http://gditmutwswv51p.corp.capgemini.com:8080/arsys/services/ARService?server=gditmutapwv51p&webService=CAP:HPD_IncidentInterface_EUS_Automation_1"
+filePath = 'exeConfig.ini'
+config = configparser.ConfigParser(delimiters=('|'))
+config.read(filePath)
+#if 'user' not in config['DEFAULT'] or 'password' not in config['DEFAULT'] or 'url' not in config['DEFAULT'] or 'webservname' not in config['DEFAULT']:
 
-_user=str(input("Username: "))
-_password= _gp("Password: ")
+_user = config['DEFAULT']['user']
+_password = config['DEFAULT']['password']
+_url = config['DEFAULT']['url']
+_webservname = config['DEFAULT']['webservname']
 
+    
+
+#_outlook = _win32.Dispatch('outlook.application')
+_headers = {'content-type': 'text/xml;charset=UTF-8', 'SOAPAction': ''}
+
+#_user=str(input("Username: "))
+#_password= _gp("Password: ")
 
 
 class getList:
-    _headers = {'content-type': 'text/xml;charset=UTF-8', 'SOAPAction': 'urn:CAP:HPD_IncidentInterface_EUS_Automation_1/HelpDesk_SearchInc_Service'}
+    
+    _headers['SOAPAction'] = '%s/HelpDesk_SearchList_Service'%(_webservname)
     def __init__(self, status = "Assigned", assignedGroup = "GSD Automation", optcat1="Personal Computing", optcat2="Mobile Pass", optcat3="Request for MobilePASS", startRec = "?", maxLimit = "?"):
         self._status = status
         self._assignedGroup = assignedGroup
@@ -26,8 +38,11 @@ class getList:
         self._optcat3 = optcat3
         self.startRec = startRec
         self.maxLimit = maxLimit
-        
+
+
     def get(self):
+        global _user
+        global _password
         bg1 = """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:CAP:HPD_IncidentInterface_GSD">
    <soapenv:Header>
       <urn:AuthenticationInfo>
@@ -47,9 +62,9 @@ class getList:
       <urn:HelpDesk_SearchList_Service>
          <urn:Qualification>?</urn:Qualification>
          <urn:startRecord>"""
-        bg4 = """?</urn:startRecord>
+        bg4 = """</urn:startRecord>
          <urn:maxLimit>"""
-        bg5 = """?</urn:maxLimit>
+        bg5 = """</urn:maxLimit>
          <urn:Status>"""
         bg6 = """</urn:Status>
          <urn:AssignedGroup>"""
@@ -71,25 +86,33 @@ class getList:
         self.getResp = getResp
         return getResp
 
+
     def list(self):
         resp = (self.getResp).text
         _ticNums = _re.findall('<ns0:IncidentNumber>([A-Za-z0-9 ]*)</ns0:IncidentNumber>', resp)
-        return (_ticNums, len(_ticNums))
+        return _ticNums
+
 
     def __repr__(self):
         return ("<<HelpDesk_SearchList_Service>>")
 
 
+
+
+
 class getListNoCat:
-    _headers = {'content-type': 'text/xml;charset=UTF-8', 'SOAPAction': 'urn:CAP:HPD_IncidentInterface_EUS_Automation_1/HelpDesk_SearchList_NoCategory_Service'}
+    #_headers['SOAPAction'] = 'urn:CAP:HPD_IncidentInterface_EUS_ServiceDesk2/HelpDesk_SearchList_NoCategory_Service'
+    _headers['SOAPAction'] = '%s/HelpDesk_SearchList_NoCategory_Service'%(_webservname)
+    
     def __init__(self, assignedGroup="GSD Automation", status="Assigned", startRec="?", maxLimit="?"):
         self._group = assignedGroup
         self._status = status
         self._startRec = startRec
         self._maxLimit = maxLimit
 
+
     def get(self):
-        bg1 = """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:CAP:HPD_IncidentInterface_EUS_Automation_1">
+        bg1 = """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:CAP:HPD_IncidentInterface_EUS_ServiceDesk2">
    <soapenv:Header>
       <urn:AuthenticationInfo>
          <urn:userName>"""
@@ -123,92 +146,20 @@ class getListNoCat:
         self.getResp = _requests.post(_url, data=bodyGet, headers=_headers)
         return self.getResp
 
+
     def list(self):
         resp = (self.getResp).text
         _ticNums = _re.findall('<ns0:IncidentNumber>([A-Za-z0-9 ]*)</ns0:IncidentNumber>', resp)
-        return (_ticNums, len(_ticNums))
+        return _ticNums
+
 
     def __repr__(self):
-        return ("<<HelpDesk_SearchList_NoCategory_Service>>") 
+        return ("<<HelpDesk_SearchList_NoCat_Service>>")
 
-
-
-class getTicket:
-    _headers = {'content-type': 'text/xml;charset=UTF-8', 'SOAPAction': 'urn:CAP:HPD_IncidentInterface_EUS_Automation_1/HelpDesk_SearchInc_Service'}
-    def __init__(self, ticNum):
-        self._ticNum = ticNum
-
-    def get(self):
-
-        bg1 = """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:CAP:HPD_IncidentInterface_GSD_1">
-   <soapenv:Header>
-      <urn:AuthenticationInfo>
-         <urn:userName>"""
-        bg2 = """</urn:userName>
-         <urn:password>"""
-        bg3 = """</urn:password>
-         <!--Optional:-->
-         <urn:authentication>?</urn:authentication>
-         <!--Optional:-->
-         <urn:locale>?</urn:locale>
-         <!--Optional:-->
-         <urn:timeZone>?</urn:timeZone>
-      </urn:AuthenticationInfo>
-   </soapenv:Header>
-   <soapenv:Body>
-      <urn:HelpDesk_SearchInc_Service>
-         <urn:IncidentNumber>"""
-        bg4 = """</urn:IncidentNumber>
-      </urn:HelpDesk_SearchInc_Service>
-   </soapenv:Body>
-</soapenv:Envelope>"""
         
-        _bodyGet = (bg1+_user+bg2+_password+bg3+self._ticNum+bg4)
-        self.getResp = _requests.post(_url, data=_bodyGet, headers=_headers)
-
-        return self.getResp
-
-    def list(self):
-        resp = self.getResp.text
-        blank = _re.search('nothing( )much', "nothing much")
-        
-
-        _summary = _re.search('<ns0:Summary>(.*)</ns0:Summary>', resp)
-        _summary = _summary if _summary != None else blank
-        _notes = _re.search('<ns0:Notes>(.*)</ns0:Notes>', resp)
-        _notes = _notes if _notes != None else blank
-        _status = _re.search('<ns0:Status>(.*)</ns0:Status>', resp)
-        _status = _status if _status != None else blank
-        _assignedGroup = _re.search('<ns0:AssignedGroup>(.*)</ns0:AssignedGroup>', resp)
-        _assignedGroup = _assignedGroup if _assignedGroup != None else blank
-        _assignedGroupID = _re.search('<ns0:AssignedGroupID>(.*)</ns0:AssignedGroupID>', resp)
-        _assignedGroupID = _assignedGroupID if _assignedGroupID != None else blank
-        _optcat1 = _re.search('<ns0:OptCat_1>(.*)</ns0:OptCat_1>', resp)
-        _optcat1 = _optcat1 if _optcat1 != None else blank
-        _optcat2 = _re.search('<ns0:OptCat_2>(.*)</ns0:OptCat_2>', resp)
-        _optcat2 = _optcat2 if _optcat2 != None else blank
-        _optcat3 = _re.search('<ns0:OptCat_3>(.*)</ns0:OptCat_3>', resp)
-        _optcat3 = _optcat3 if _optcat3 != None else blank
-        _assignee = _re.search('<ns0:Assignee>(.*)</ns0:Assignee>', resp)
-        _assignee = _assignee if _assignee != None else blank
-        _custID = _re.search('<ns0:CustomerID>(.*)</ns0:CustomerID>', resp)
-        _custID = _custID if _custID != None else blank
-        _statReason = _re.search('<ns0:StatusReason>(.*)</ns0:StatusReason>', resp)
-        _statReason = _statReason if _statReason != None else blank
-        _assignLoginID = _re.search('<ns0:AssigneeLoginID>(.*)</ns0:AssigneeLoginID>', resp)
-        _assignLoginID = _assignLoginID if _assignLoginID != None else blank
-        _resComment = _re.search('<ns0:ResComment>(.*)</ns0:ResComment>', resp)
-        _resComment = _resComment if _resComment != None else blank
-        
-        return [_summary.groups(0)[0], _notes.groups(0)[0], _status.groups(0)[0], _assignedGroup.groups(0)[0], _assignedGroupID.groups(0)[0],
-                _optcat1.groups(0)[0], _optcat2.groups(0)[0], _optcat3.groups(0)[0], _assignee.groups(0)[0], _custID.groups(0)[0],
-                _statReason.groups(0)[0], _assignLoginID.groups(0)[0], _resComment.groups(0)[0]]
-
-
-
 class modTicket:
-    _headers = {'content-type': 'text/xml;charset=UTF-8', 'SOAPAction': 'urn:CAP:HPD_IncidentInterface_EUS_Automation_1/HelpDesk_StatusMod_Service'}
-    def __init__(self, ticNum, status="Assigned", statReason = "", resComment = "Test"):
+    _headers = {'content-type': 'text/xml;charset=UTF-8', 'SOAPAction': 'urn:CAP:HPD_IncidentInterface_EUS_ServiceDesk2/HelpDesk_StatusMod_Service'}
+    def __init__(self, ticNum, status="Assigned", statReason = "", resComment = ""):
         self._ticNum = ticNum
         self._status = status
         self._statReason = statReason
@@ -216,7 +167,7 @@ class modTicket:
         
         
     def mod(self):
-        _
+        
         bg1 = """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:CAP:HPD_IncidentInterface_GSD_1">
    <soapenv:Header>
       <urn:AuthenticationInfo>
@@ -256,8 +207,92 @@ class modTicket:
         return getResp
 
 
+    def __repr__(self):
+        return ("<<HelpDesk_ModTicket_Service>>")
+    
+
+
+class getTicket:
+    """This class helps extract the ticket data returned and passes it back to us. The data
+        is in list format and index is as follows:
+        1. Summary
+        2. Notes
+        3. Status
+        4. Assigned Group
+        5. Assigned Group ID
+        6. OptCat1
+        7. OptCat2
+        8. OptCat3
+        9. Assignee
+        10. User's ID
+        11. Status Reason
+        12. Assignee Login ID
+        13. Resolution Comment
+
+        Note: List index starts from 0. The above mentioned is generic readable format."""
+
+    _headers['SOAPAction'] = '%s/HelpDesk_SearchInc_Service'%(_webservname)
+    #_headers = {'content-type': 'text/xml;charset=UTF-8', 'SOAPAction': 'urn:CAP:HPD_IncidentInterface_EUS_ServiceDesk2/HelpDesk_SearchInc_Service'}
+
+    def __init__(self, ticNum):
+        self._ticNum = ticNum
+
+    def get(self):
+        bg1 = """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:CAP:HPD_IncidentInterface_GSD_1">
+   <soapenv:Header>
+      <urn:AuthenticationInfo>
+         <urn:userName>"""
+        bg2 = """</urn:userName>
+         <urn:password>"""
+        bg3 = """</urn:password>
+         <!--Optional:-->
+         <urn:authentication>?</urn:authentication>
+         <!--Optional:-->
+         <urn:locale>?</urn:locale>
+         <!--Optional:-->
+         <urn:timeZone>?</urn:timeZone>
+      </urn:AuthenticationInfo>
+   </soapenv:Header>
+   <soapenv:Body>
+      <urn:HelpDesk_SearchInc_Service>
+         <urn:IncidentNumber>"""
+        bg4 = """</urn:IncidentNumber>
+      </urn:HelpDesk_SearchInc_Service>
+   </soapenv:Body>
+</soapenv:Envelope>"""
+
+        _bodyGet = (bg1+_user+bg2+_password+bg3+self._ticNum+bg4)
+        self.getResp = _requests.post(_url, data=_bodyGet, headers=_headers)
+        
+        return self.getResp
+
+
+    def searchREO(self, terms):
+        foundData = {}
+        for each in terms:
+            resp = self.getResp.text
+            blank = _re.search('nothing( )much', "nothing much")
+            foundeachObj = _re.search('<ns0:' + _re.escape(each) + '>(.*)</ns0:' + _re.escape(each) + '>', resp)
+            foundeachObj = foundeachObj if foundeachObj != None else blank
+            foundVal = foundeachObj.groups(0)[0]
+            foundData[each] = foundVal
+        return foundData
+
+
+    def list(self):
+        resp = self.getResp.text
+        blank = _re.search('nothing( )much', "nothing much")
+        searchTerms = ["Summary", "Notes", "Status", "IncidentNum", "AssignedGroup", "AssignedGroupID", "OptCat_1", "OptCat_2", "OptCat_3", "Assignee", "CustomerID", "StatusReason", "AssigneeLoginID", "ResComment", "Site", "Region", "ResportedSource", "GroupTransfers", "SubmitDate", "Organization", "VIP", "TargetDate", "ClosedDate", "AssignedOrganization", "Priority", "LastModDate", "LastModBy", "LastResolveDate", "IncidentType", "Submitter", "ReportedDate"]
+        res = self.searchREO(searchTerms)
+        return res
+
+    def __repr__(self):
+        return ("<<HelpDesk_GetTicket_Service>>")
+    
+
+
 class reassignTic:
-    _headers = {'content-type': 'text/xml;charset=UTF-8', 'SOAPAction': 'urn:CAP:HPD_IncidentInterface_EUS_Automation_1/HelpDesk_Reassignment_Service'}
+    _headers = {'content-type': 'text/xml;charset=UTF-8', 'SOAPAction': 'urn:CAP:HPD_IncidentInterface_EUS_ServiceDesk2/HelpDesk_Reassignment_Service'}
     def __init__(self, ticNum, status="Assigned", reassignTo="GSD Automation", reassignReason=""):
         self.ticNum = ticNum
         self.status = status
@@ -265,7 +300,7 @@ class reassignTic:
         self.reassignReason = reassignReason
 
     def reassign(self):
-        bg1 = """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:CAP:HPD_IncidentInterface_EUS_Automation_1">
+        bg1 = """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:CAP:HPD_IncidentInterface_EUS_ServiceDesk2">
    <soapenv:Header>
       <urn:AuthenticationInfo>
          <urn:userName>"""
@@ -311,13 +346,19 @@ class reassignTic:
         return getResp
 
 
+    def __repr__(self):
+        return ("<<HelpDesk_ReassignTicket_Service>>")
+
+    
+
+
 class getWorkNotes:
-    _headers = {'content-type': 'text/xml;charset=UTF-8', 'SOAPAction': 'urn:CAP:HPD_IncidentInterface_EUS_Automation_1/HelpDesk_GetWorkInfoList_Service'}
+    _headers = {'content-type': 'text/xml;charset=UTF-8', 'SOAPAction': 'urn:CAP:HPD_IncidentInterface_EUS_ServiceDesk2/HelpDesk_GetWorkInfoList_Service'}
     def __init__(self, ticNum):
         self.ticNum = ticNum
 
     def get(self):
-        bg1 = """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:CAP:HPD_IncidentInterface_EUS_Automation_1">
+        bg1 = """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:CAP:HPD_IncidentInterface_EUS_ServiceDesk2">
    <soapenv:Header>
       <urn:AuthenticationInfo>
          <urn:userName>"""
@@ -344,9 +385,92 @@ class getWorkNotes:
         getResp = _requests.post(_url, data=_bodyMod, headers=_headers)
         return getResp
 
+    def __repr__(self):
+        return ("<<HelpDesk_GetWorkNotes_Service>>")
 
+
+
+class addWorkNotes:
+    _headers = {'content-type': 'text/xml;charset=UTF-8', 'SOAPAction': 'urn:CAP:HPD_IncidentInterface_EUS_ServiceDesk2/HelpDesk_AddWorkInfo_Service'}
+
+    def __init__(self, ticNum, fileName="?", filePath="?", workinfoType="General Information", workinfo=""):
+        self._ticNum = ticNum
+        self._fileName = fileName
+        self._filePath = filePath
+        self._wiType = workinfoType
+        self._workinfo = workinfo
+        self._workinfoSummary = "WI Summary"
+
+
+    def base64encode(self):
+        if self._filePath == "?" or self._filePath == "":
+            return ""
+        else:
+            with open(self._filePath, "rb") as fh:
+                return (codecs.encode(fh.read(), encoding="base64")).decode()
+
+            
+    def addNote(self):
+        self._base64encoded = self.base64encode()
+        bg1 = """<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:urn="urn:CAP:HPD_IncidentInterface_EUS_ServiceDesk2">
+   <soapenv:Header>
+      <urn:AuthenticationInfo>
+         <urn:userName>"""
+        bg2 = """</urn:userName>
+         <urn:password>"""
+        bg3 = """</urn:password>
+         <!--Optional:-->
+         <urn:authentication>?</urn:authentication>
+         <!--Optional:-->
+         <urn:locale>?</urn:locale>
+         <!--Optional:-->
+         <urn:timeZone>?</urn:timeZone>
+      </urn:AuthenticationInfo>
+   </soapenv:Header>
+   <soapenv:Body>
+      <urn:HelpDesk_AddWorkInfo_Service>
+         <!--Optional:-->
+         <urn:WorkInfo>"""
+        bg4 = """</urn:WorkInfo>
+         <!--Optional:-->
+         <urn:IncidentNumber>"""
+        bg5 = """</urn:IncidentNumber>
+         <!--Optional:-->
+         <urn:WorkInfoSummary>"""
+        bg6 = """</urn:WorkInfoSummary>
+         <!--Optional:-->
+         <urn:WorkInfoType>"""
+        bg7 = """</urn:WorkInfoType>
+         <!--Optional:-->
+         <urn:ViewAccess>Public</urn:ViewAccess>
+         <!--Optional:-->
+         <urn:Locked>Yes</urn:Locked>
+         <!--Optional:-->
+         <urn:AttachmentName>"""
+        bg8 = """</urn:AttachmentName>
+         <urn:AttachmentData>"""
+        bg9 = """</urn:AttachmentData>
+
+         <!--Optional:--></urn:HelpDesk_AddWorkInfo_Service>
+   </soapenv:Body>
+</soapenv:Envelope>"""
+
+
+        _bodyMod = (bg1 + _user + bg2 + _password + bg3 + self._workinfo + bg4 + self._ticNum + bg5 + self._workinfoSummary + bg6 + self._wiType + bg7 + self._fileName
+                    + bg8 + self._base64encoded + bg9)
+        
+        getResp = _requests.post(_url, data=_bodyMod, headers=_headers)
+
+        return getResp
+
+
+    def __repr__(self):
+        return ("<<HelpDesk_AddWorkNotes_Service>>")
+    
+
+d = """
 class mail:
-    def __init__(self, to="noexistant.domain", cc="",  subject="", body="", attachment=False, html=None):
+    def __init__(self, to="mrinal.singh@capgemini.com;", cc="",  subject="", body="", attachment=False, html=None):
         self.To = to
         self.Subject = subject
         self.body = body
@@ -366,3 +490,7 @@ class mail:
             pass
         
         mail.Send()
+"""
+
+#getTics = getList()
+#print ((getTics.get()).text)
