@@ -470,7 +470,7 @@ class addWorkNotes:
 
 d = """
 class mail:
-    def __init__(self, to="mrinal.singh@capgemini.com;", cc="",  subject="", body="", attachment=False, html=None):
+    def __init__(self, to="", cc="",  subject="", body="", attachment=False, html=None):
         self.To = to
         self.Subject = subject
         self.body = body
